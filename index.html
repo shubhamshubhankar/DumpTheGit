@@ -1,0 +1,202 @@
+
+<html>
+ 	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+		<!-- Latest compiled and minified CSS -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+		<!-- Optional theme -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+		<style>
+		html, body, 
+		{
+ 			position:fixed;
+			top:0;
+			bottom:0;
+			left:0;
+			right:0;
+		}
+		</style>
+		
+		<script>
+
+		google.charts.load('current', {'packages':['table']});
+		
+		function sleep(ms) 
+		{
+  			return new Promise(resolve => setTimeout(resolve, ms));
+		}
+
+		function searchARNDataNew()
+		{
+			try
+			{
+				var isValid = true;
+				$('#queryTerm,#accessToken').each(function()
+				{
+				if ($.trim($(this).val()) == '')
+				{
+					isValid = false;
+					$(this).css(
+					{
+					"border": "1px solid red",
+					"background": "#FFCECE"
+					});
+				}
+				else
+				{
+					$(this).css(
+					{
+					"border": "",
+					"background": ""
+					});
+				}
+				});
+
+				if (isValid == false) 
+				alert("Please fill the required fields");
+
+				else
+				{
+					$("#btnGo").attr("disabled", true);
+					document.getElementById("waitingImg").style.display="block";
+					const request = async () => 
+					{
+						var allData = [];			
+						
+							var iterator = 1;
+							var upto;
+							do
+							{
+								var queryTerm = document.getElementById('queryTerm').value;
+								var accessToken = document.getElementById('accessToken').value;
+								var vulnerableTerm = document.getElementById('vulnerableTerm').value;
+							
+								var url= 'https://api.github.com/search/code?q="' +queryTerm+ '"+"' +vulnerableTerm+ '"+sort:indexed-desc&access_token=' +accessToken+ '&per_page=100&page=' + iterator;
+								for(var i=0;i<100000;i++)
+								{}
+								const response = await fetch(url, {
+									method: 'GET', 
+									headers: 
+									{
+										'Content-Type': 'application/json;charset=utf-8',
+										'Accept': 'application/vnd.github.v3.text-match+json',
+										'User-Agent': 'shubhamshubhankar'
+									}
+									});
+								
+								const json = await response.json();
+								
+								upto = Math.ceil(json.total_count/100);
+								if(response.status==200)
+								{
+									var items = json.items;
+									items.forEach(function (item)
+									{
+										var fragment1 = "";
+										var fragment2 = "";
+										if(item.text_matches[0]!=undefined)
+										var fragment1 = item.text_matches[0].fragment;
+										if(item.text_matches[1]!=undefined)
+										var fragment2 = item.text_matches[1].fragment;
+										allData.push([item.repository.full_name,item.path,'<a target="_blank" href="'+item.html_url+'"> Click Here  </a>','<code>'+ fragment1 +'</code>','<code>'+ fragment1 +'</code>']);
+									})
+								}
+								iterator = iterator+1;
+							}while(iterator<=upto)
+						drawProductTable(allData);
+					}
+					request();
+				} 	
+			}	
+			catch(ex)
+			{
+				
+			}
+		}
+
+
+		function drawProductTable(allData)
+		{
+			if(allData!=undefined)
+			{	
+				var data = new google.visualization.DataTable();
+				data.addColumn('string','Full Name');
+				data.addColumn('string','Path');
+				data.addColumn('string','GIT URL');
+				data.addColumn('string','Secret 1');
+				data.addColumn('string','Secret 2');
+				
+				data.addRows(allData);
+
+				var table = new google.visualization.Table(document.getElementById('dataTableDiv'));
+				table.draw(data, {showRowNumber: true, width: '100%', height: '100%',allowHtml: true});
+				document.getElementById("waitingImg").style.display="none";
+			}
+			else
+			{
+				alert('Please enter Access Token ');
+				document.getElementById("waitingImg").style.display="none";
+			}
+		}
+			
+		 
+		</script>
+
+	</head>
+  	<body>
+	  <h1 align="center">DumpTheGit</h1>
+		<div class="container-fluid">
+			<div class="row" id="eventForms">
+				<div class="col-md-12">
+					<div class="dropdown" style="margin-top: 1%;left:4%">
+					<table class="table" style="box-shadow: 0px 0px 10px 3px #e0e0e0;border-radius: 10px;">
+						<tr>
+							<td><label for="txtClassroomName">Query : </label> <input type="text" id="queryTerm" width="150" class="form-control" name="queryTerm" placeholder="String to Search ..."></td>
+							<td><label for="txtClassroomName">Access Token : </label> <input type="text" id="accessToken" width="150" class="form-control" name="accessToken" placeholder="Provide your Access Token ..."></td>
+							<td><label for="txtClassroomName">Vulnerable Terms : </label>
+							<select class="form-control" name="vulnerableTerm" id="vulnerableTerm" >
+      						<option value="password" selected="true">password</option>
+							<option value="secret" >secret</option>
+							<option value="secret_key" >secret_key</option>
+							<option value="token" >token</option>
+							<option value="token_key" >token_key</option>
+							<option value="passkey" >passkey</option>
+							<option value="pass_key" >pass_key</option>
+							<option value="passphrase" >passphrase</option>
+							<option value="api_key" >api_key</option>
+							<option value="client_secret" >client_secret</option>
+							<option value="passcode" >passcode</option>
+      						</select></td>
+						</tr>
+						<tr>
+							<td colspan="2"> <input type="button" id="btnSearchData" value="Search Github" class="btn btn-info" onclick="searchARNDataNew()"></td>
+						</tr>
+					</table>
+					<div align="center"><img src="91.gif" id='waitingImg' style="display: none;" ></div>
+					</div>
+
+					<div id='dataTableDiv'>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-1">
+				</div>
+			<div class="col-xs-10">
+				<hr>
+				<span id="tblResult"></span>
+			</div>
+			<div class="col-xs-1">
+			</div>
+		</div>
+	</body>
+</html>
+
+
+
