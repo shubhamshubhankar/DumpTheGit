@@ -20,5 +20,5 @@ The tool will flag the matches for potentially sensitive files like credentials,
 
 
 ## Collaborators
-* Malkit Singh
-* Shubham Shubhankar Sharma
+* [Malkit Singh](https://www.linkedin.com/in/malkit-singh-oscp-crest-cpsa-crt-4005b916/)
+* [Shubham Shubhankar Sharma](https://www.linkedin.com/in/shubham-subhankar-sharma-4b410695/)
